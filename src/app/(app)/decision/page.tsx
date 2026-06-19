@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function DecisionPage() {
-  const { activeStartup } = useAppStore();
+  const activeStartup = useAppStore(state => state.startups.find(s => s.id === state.selectedStartupId));
   const investorData = activeStartup?.investorData;
   const isYes = investorData?.decision === 'YES';
   const colorScheme = isYes ? 'primary' : 'destructive';
