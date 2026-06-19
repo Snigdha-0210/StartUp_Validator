@@ -19,8 +19,8 @@
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/LaunchLens.git
-   cd LaunchLens/launchlens-app
+   git clone https://github.com/Snigdha-0210/StartUp_Validator.git
+   cd StartUp_Validator
    ```
 
 2. Install dependencies
