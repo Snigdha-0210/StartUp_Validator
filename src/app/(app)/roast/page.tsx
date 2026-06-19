@@ -45,11 +45,25 @@ export default function RoastPage() {
   const [fullLoading, setFullLoading] = useState(false);
 
   const handleBookVC = () => {
+    if (typeof pendo !== 'undefined') {
+      pendo.track("vc_consultation_requested", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        roast_intensity: roastLevels[intensity].label,
+      });
+    }
     window.location.href = "mailto:partners@launchlens.ai?subject=VC%20Consultation%20Booking";
   };
 
   const handleGenerateFull = () => {
     setFullLoading(true);
+    if (typeof pendo !== 'undefined') {
+      pendo.track("full_roast_report_requested", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        roast_intensity: roastLevels[intensity].label,
+      });
+    }
     setTimeout(() => {
       setFullLoading(false);
       alert("Full roast report generated and sent to your email!");

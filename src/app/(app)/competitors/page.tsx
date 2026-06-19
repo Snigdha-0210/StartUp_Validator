@@ -5,7 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusChip } from "@/components/ui/StatusChip";
 import Globe3DDemo from "@/components/3d-globe-demo";
 import { Search, Filter, Download, ChevronRight, TrendingUp, Users, DollarSign, Info } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -20,12 +20,34 @@ export default function CompetitorsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  const filteredCompetitors = (activeStartup?.competitors || []).filter(comp => {
+  const allCompetitors = activeStartup?.competitors || [];
+  const filteredCompetitors = allCompetitors.filter(comp => {
     const matchesSearch = comp.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           comp.differentiation.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeFilter === "All") return matchesSearch;
     return matchesSearch && comp.threatLevel.toLowerCase() === activeFilter.toLowerCase();
   });
+
+  // Debounced tracking for competitor search/filter
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (typeof pendo !== 'undefined') {
+        pendo.track("competitor_search_executed", {
+          search_query: searchQuery,
+          active_filter: activeFilter,
+          results_count: filteredCompetitors.length,
+          total_competitors: allCompetitors.length,
+          startup_id: activeStartup?.id,
+        });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, activeFilter]);
 
   const exportToPDF = async () => {
     setIsExportingPDF(true);
@@ -55,7 +77,17 @@ export default function CompetitorsPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup?.name?.replace(/\s+/g, '_')}_Competitors_Analysis.pdf`);
+      const fileName = `${activeStartup?.name?.replace(/\s+/g, '_')}_Competitors_Analysis.pdf`;
+      pdf.save(fileName);
+      if (typeof pendo !== 'undefined') {
+        pendo.track("competitor_analysis_exported", {
+          startup_id: activeStartup?.id,
+          startup_name: activeStartup?.name,
+          competitor_count: allCompetitors.length,
+          file_name: fileName,
+          format: "PDF",
+        });
+      }
     } catch (error) {
       console.error("Failed to export PDF", error);
     }

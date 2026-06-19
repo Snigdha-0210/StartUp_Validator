@@ -63,17 +63,60 @@ export default function ValidationPage() {
       // Call the Mega AI Action
       const res = await generateCompleteStartupProfile(idea, severity, targetMarket, unfairAdvantage, customerType, selectedChips);
       clearInterval(interval);
-      
+
+      if (typeof pendo !== 'undefined') {
+        pendo.track("startup_validation_submitted", {
+          idea_length: idea.length,
+          severity_score: severity,
+          customer_type: customerType,
+          target_market: targetMarket,
+          existing_solutions: selectedChips.join(", "),
+          has_unfair_advantage: unfairAdvantage.length > 0,
+          unfair_advantage_length: unfairAdvantage.length,
+        });
+      }
+
       if (res.success && res.data) {
+        if (typeof pendo !== 'undefined') {
+          pendo.track("startup_validation_completed", {
+            startup_id: res.data.id,
+            startup_name: res.data.name,
+            category: res.data.category,
+            overall_score: res.data.overallScore,
+            market_score: res.data.marketScore,
+            product_score: res.data.productScore,
+            team_score: res.data.teamScore,
+            risk_level: res.data.riskLevel,
+            pricing_model: res.data.pricingModel,
+            investment_decision: res.data.investorData?.decision,
+            confidence_score: res.data.investorData?.confidenceScore,
+          });
+        }
         useAppStore.getState().addGeneratedStartup(res.data);
         router.push('/dashboard');
       } else {
+        if (typeof pendo !== 'undefined') {
+          pendo.track("startup_validation_failed", {
+            error_message: String(res.error || "Engine Overloaded").substring(0, 100),
+            idea_length: idea.length,
+            customer_type: customerType,
+            target_market: targetMarket,
+          });
+        }
         console.error(res.error);
         alert("Engine Overloaded. Please try again.");
         setIsSubmitting(false);
       }
     } catch (err) {
       clearInterval(interval);
+      if (typeof pendo !== 'undefined') {
+        pendo.track("startup_validation_failed", {
+          error_message: String(err instanceof Error ? err.message : "Unknown error").substring(0, 100),
+          idea_length: idea.length,
+          customer_type: customerType,
+          target_market: targetMarket,
+        });
+      }
       console.error(err);
       alert("Failed to analyze startup.");
       setIsSubmitting(false);

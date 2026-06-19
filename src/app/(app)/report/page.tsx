@@ -15,6 +15,16 @@ export default function ReportPage() {
 
   const handleExport = (format: string) => {
     setIsExporting(format);
+    const isPremium = format !== "PDF" && format !== "JSON";
+    if (typeof pendo !== 'undefined') {
+      pendo.track("report_exported", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        export_format: format,
+        is_premium_format: isPremium,
+        success: !isPremium,
+      });
+    }
     if (format === "PDF") {
       setTimeout(() => {
         window.print();
@@ -41,6 +51,12 @@ export default function ReportPage() {
 
   const handleRegenerate = () => {
     setIsRegenerating(true);
+    if (typeof pendo !== 'undefined') {
+      pendo.track("report_section_regenerated", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+      });
+    }
     setTimeout(() => {
       setIsRegenerating(false);
       setHasNewInsight(false);

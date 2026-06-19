@@ -59,8 +59,20 @@ export default function InvestorModePage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Investor_Report.pdf`);
-      
+      const fileName = `${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Investor_Report.pdf`;
+      pdf.save(fileName);
+
+      if (typeof pendo !== 'undefined') {
+        pendo.track("investor_report_downloaded", {
+          startup_id: activeStartup?.id,
+          startup_name: activeStartup?.name,
+          investment_decision: investorData?.decision,
+          confidence_score: investorData?.confidenceScore,
+          file_name: fileName,
+          format: "PDF",
+        });
+      }
+
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (error) {
@@ -98,6 +110,18 @@ CONFIDENTIAL - LAUNCHLENS VENTURE INTELLIGENCE
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      const termFileName = `${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Term_Sheet.txt`;
+      if (typeof pendo !== 'undefined') {
+        pendo.track("term_sheet_generated", {
+          startup_id: activeStartup?.id,
+          startup_name: activeStartup?.name,
+          investment_decision: investorData?.decision,
+          confidence_score: investorData?.confidenceScore,
+          founder: activeStartup?.founder,
+          file_name: termFileName,
+        });
+      }
 
       setIsGenerating(false);
       setGenerateSuccess(true);

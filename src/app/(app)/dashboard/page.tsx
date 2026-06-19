@@ -48,7 +48,16 @@ export default function DashboardPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup.name.replace(/\s+/g, '_')}_Venture_Report.pdf`);
+      const fileName = `${activeStartup.name.replace(/\s+/g, '_')}_Venture_Report.pdf`;
+      pdf.save(fileName);
+      if (typeof pendo !== 'undefined') {
+        pendo.track("dashboard_pdf_exported", {
+          startup_id: activeStartup.id,
+          startup_name: activeStartup.name,
+          file_name: fileName,
+          format: "PDF",
+        });
+      }
     } catch (error) {
       console.error("Failed to export PDF", error);
     }
@@ -61,15 +70,42 @@ export default function DashboardPage() {
     try {
       const res = await generateGroqMarketSignals(activeStartup.description);
       if (res.success && res.data) {
-        updateStartupScores(activeStartup.id, {
+        const newScores = {
           marketScore: Math.round(res.data.market_score * 10),
           productScore: Math.round(res.data.monetization_score * 10),
           teamScore: Math.round(res.data.execution_score * 10),
           overallScore: Math.round(((res.data.market_score + res.data.monetization_score + res.data.execution_score) / 3) * 10)
-        });
+        };
+        updateStartupScores(activeStartup.id, newScores);
+        if (typeof pendo !== 'undefined') {
+          pendo.track("market_rescan_completed", {
+            startup_id: activeStartup.id,
+            startup_name: activeStartup.name,
+            success: true,
+            new_market_score: newScores.marketScore,
+            new_product_score: newScores.productScore,
+            new_team_score: newScores.teamScore,
+            new_overall_score: newScores.overallScore,
+          });
+        }
+      } else {
+        if (typeof pendo !== 'undefined') {
+          pendo.track("market_rescan_completed", {
+            startup_id: activeStartup.id,
+            startup_name: activeStartup.name,
+            success: false,
+          });
+        }
       }
     } catch (e) {
       console.error(e);
+      if (typeof pendo !== 'undefined') {
+        pendo.track("market_rescan_completed", {
+          startup_id: activeStartup.id,
+          startup_name: activeStartup.name,
+          success: false,
+        });
+      }
     }
     setScanning(false);
   };
