@@ -56,7 +56,16 @@ export default function CompetitorsPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup?.name?.replace(/\s+/g, '_')}_Competitors_Analysis.pdf`);
+      const fileName = `${activeStartup?.name?.replace(/\s+/g, '_')}_Competitors_Analysis.pdf`;
+      pdf.save(fileName);
+      pendo.track("competitor_analysis_exported", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        competitor_count: activeStartup?.competitors?.length ?? 0,
+        active_search_query: searchQuery || "",
+        active_threat_filter: activeFilter,
+        file_name: fileName,
+      });
     } catch (error) {
       console.error("Failed to export PDF", error);
     }

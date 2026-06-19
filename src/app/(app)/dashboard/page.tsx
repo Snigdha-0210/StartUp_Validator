@@ -48,7 +48,16 @@ export default function DashboardPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup.name.replace(/\s+/g, '_')}_Venture_Report.pdf`);
+      const fileName = `${activeStartup.name.replace(/\s+/g, '_')}_Venture_Report.pdf`;
+      pdf.save(fileName);
+      pendo.track("dashboard_pdf_exported", {
+        startup_id: activeStartup.id,
+        startup_name: activeStartup.name,
+        overall_score: activeStartup.overallScore,
+        risk_level: activeStartup.riskLevel,
+        category: activeStartup.category,
+        file_name: fileName,
+      });
     } catch (error) {
       console.error("Failed to export PDF", error);
     }
@@ -58,18 +67,48 @@ export default function DashboardPage() {
   const handleScan = async () => {
     if (!activeStartup) return;
     setScanning(true);
+    const prevOverall = activeStartup.overallScore;
+    const prevMarket = activeStartup.marketScore;
+    const prevProduct = activeStartup.productScore;
+    let scanSuccess = false;
     try {
       const res = await generateGroqMarketSignals(activeStartup.description);
       if (res.success && res.data) {
+        const newOverall = Math.round(((res.data.market_score + res.data.monetization_score + res.data.execution_score) / 3) * 10);
+        const newMarket = Math.round(res.data.market_score * 10);
+        const newProduct = Math.round(res.data.monetization_score * 10);
         updateStartupScores(activeStartup.id, {
-          marketScore: Math.round(res.data.market_score * 10),
-          productScore: Math.round(res.data.monetization_score * 10),
+          marketScore: newMarket,
+          productScore: newProduct,
           teamScore: Math.round(res.data.execution_score * 10),
-          overallScore: Math.round(((res.data.market_score + res.data.monetization_score + res.data.execution_score) / 3) * 10)
+          overallScore: newOverall
+        });
+        scanSuccess = true;
+        pendo.track("market_signals_rescanned", {
+          startup_id: activeStartup.id,
+          startup_name: activeStartup.name,
+          previous_overall_score: prevOverall,
+          new_overall_score: newOverall,
+          previous_market_score: prevMarket,
+          new_market_score: newMarket,
+          previous_product_score: prevProduct,
+          new_product_score: newProduct,
+          scan_success: true,
         });
       }
     } catch (e) {
       console.error(e);
+      pendo.track("market_signals_rescanned", {
+        startup_id: activeStartup.id,
+        startup_name: activeStartup.name,
+        previous_overall_score: prevOverall,
+        new_overall_score: prevOverall,
+        previous_market_score: prevMarket,
+        new_market_score: prevMarket,
+        previous_product_score: prevProduct,
+        new_product_score: prevProduct,
+        scan_success: false,
+      });
     }
     setScanning(false);
   };
