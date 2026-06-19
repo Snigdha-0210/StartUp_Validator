@@ -12,7 +12,7 @@ export function TopNavigation() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const filteredStartups = startups.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.industry.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredStartups = startups.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.category.toLowerCase().includes(searchQuery.toLowerCase()));
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -66,7 +66,7 @@ export function TopNavigation() {
                         <div className="flex flex-col">
                           <span className={`font-semibold text-sm ${selectedStartupId === startup.id ? 'text-primary' : 'text-foreground'}`}>{startup.name}</span>
                           <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <Briefcase className="w-3 h-3" /> {startup.industry}
+                            <Briefcase className="w-3 h-3" /> {startup.category}
                           </span>
                         </div>
                         {selectedStartupId === startup.id && <Check className="w-4 h-4 text-primary" />}
