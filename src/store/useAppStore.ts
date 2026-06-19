@@ -12,9 +12,6 @@ interface AppState {
   toggleSidebar: () => void;
   updateStartupScores: (id: string, scores: Partial<StartupMockData>) => void;
   addGeneratedStartup: (startup: StartupMockData) => void;
-  
-  // Computed
-  activeStartup: StartupMockData | undefined;
 }
 
 export const useAppStore = create<AppState>()(
