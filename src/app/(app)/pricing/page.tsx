@@ -27,7 +27,14 @@ export default function PricingPage() {
   const handleSimulate = () => {
     setIsSimulating(true);
     setTimeout(() => {
-      // Simulate re-calibration
+      pendo.track("pricing_simulation_run", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        starter_price: starterPrice,
+        growth_price: growthPrice,
+        enterprise_price: enterprisePrice,
+        billing_cycle: isAnnual ? "annual" : "monthly",
+      });
       setIsSimulating(false);
     }, 1000);
   };

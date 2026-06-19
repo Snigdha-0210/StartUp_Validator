@@ -59,7 +59,17 @@ export default function InvestorModePage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Investor_Report.pdf`);
+      const fileName = `${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Investor_Report.pdf`;
+      pdf.save(fileName);
+      pendo.track("investor_report_downloaded", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        investment_decision: investorData?.decision,
+        confidence_score: investorData?.confidenceScore,
+        risk_level: activeStartup?.riskLevel,
+        tam: investorData?.marketPotential?.tam,
+        file_name: fileName,
+      });
       
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
@@ -93,11 +103,22 @@ CONFIDENTIAL - LAUNCHLENS VENTURE INTELLIGENCE
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Term_Sheet.txt`;
+      const fileName = `${activeStartup?.name?.replace(/\s+/g, '_') || 'Startup'}_Term_Sheet.txt`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      pendo.track("term_sheet_generated", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        founder_name: activeStartup?.founder,
+        investment_decision: investorData?.decision,
+        confidence_score: investorData?.confidenceScore,
+        investment_tags: (investorData?.tags || []).join(", "),
+        file_name: fileName,
+      });
 
       setIsGenerating(false);
       setGenerateSuccess(true);

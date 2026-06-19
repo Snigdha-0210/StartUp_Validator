@@ -11,11 +11,27 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const toggleApp = (app: keyof typeof connectedApps) => {
-    setConnectedApps(prev => ({ ...prev, [app]: !prev[app] }));
+    const newState = !connectedApps[app];
+    const updatedApps = { ...connectedApps, [app]: newState };
+    const totalConnected = Object.values(updatedApps).filter(Boolean).length;
+    pendo.track("integration_toggled", {
+      integration_name: app,
+      new_state: newState ? "connected" : "disconnected",
+      total_connected_count: totalConnected,
+    });
+    setConnectedApps(updatedApps);
   };
 
   const handleSave = () => {
     setIsSaving(true);
+    const connectedList = Object.entries(connectedApps)
+      .filter(([, v]) => v)
+      .map(([k]) => k);
+    pendo.track("settings_saved", {
+      active_ai_model: activeModel,
+      connected_integrations: connectedList.join(", "),
+      connected_integration_count: connectedList.length,
+    });
     setTimeout(() => setIsSaving(false), 1500);
   };
 
@@ -132,7 +148,15 @@ export default function SettingsPage() {
                     <motion.div 
                       key={model.id}
                       whileHover={{ scale: 1.01 }}
-                      onClick={() => setActiveModel(model.id)}
+                      onClick={() => {
+                        if (activeModel !== model.id) {
+                          pendo.track("ai_model_changed", {
+                            previous_model: activeModel,
+                            new_model: model.id,
+                          });
+                        }
+                        setActiveModel(model.id);
+                      }}
                       className={`flex items-center justify-between p-4 rounded-xl cursor-pointer transition-all duration-300 ${isActive ? `bg-white/5 border ${model.border} ${model.glow}` : 'bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10'}`}
                     >
                       <div className="flex items-center gap-4">

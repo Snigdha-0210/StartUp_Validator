@@ -65,15 +65,45 @@ export default function ValidationPage() {
       clearInterval(interval);
       
       if (res.success && res.data) {
+        pendo.track("startup_validation_completed", {
+          idea_length: idea.length,
+          severity_score: severity,
+          customer_type: customerType,
+          target_market: targetMarket,
+          unfair_advantage_length: unfairAdvantage.length,
+          existing_solutions_selected: selectedChips.join(", "),
+          existing_solutions_count: selectedChips.length,
+          generated_startup_id: res.data.id,
+          generated_startup_name: res.data.name,
+          generated_category: res.data.category,
+          generated_overall_score: res.data.overallScore,
+          generated_risk_level: res.data.riskLevel,
+        });
         useAppStore.getState().addGeneratedStartup(res.data);
         router.push('/dashboard');
       } else {
+        pendo.track("startup_validation_failed", {
+          error_message: String(res.error).substring(0, 200),
+          idea_length: idea.length,
+          severity_score: severity,
+          customer_type: customerType,
+          target_market: targetMarket,
+          existing_solutions_count: selectedChips.length,
+        });
         console.error(res.error);
         alert("Engine Overloaded. Please try again.");
         setIsSubmitting(false);
       }
     } catch (err) {
       clearInterval(interval);
+      pendo.track("startup_validation_failed", {
+        error_message: String(err).substring(0, 200),
+        idea_length: idea.length,
+        severity_score: severity,
+        customer_type: customerType,
+        target_market: targetMarket,
+        existing_solutions_count: selectedChips.length,
+      });
       console.error(err);
       alert("Failed to analyze startup.");
       setIsSubmitting(false);

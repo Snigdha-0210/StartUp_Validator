@@ -15,6 +15,16 @@ export default function ReportPage() {
 
   const handleExport = (format: string) => {
     setIsExporting(format);
+    const isPremium = format !== "PDF" && format !== "JSON";
+    pendo.track("report_exported", {
+      startup_id: activeStartup?.id,
+      startup_name: activeStartup?.name,
+      export_format: format,
+      category: activeStartup?.category,
+      risk_level: activeStartup?.riskLevel,
+      overall_score: activeStartup?.overallScore,
+      is_premium_format: isPremium,
+    });
     if (format === "PDF") {
       setTimeout(() => {
         window.print();
@@ -42,6 +52,11 @@ export default function ReportPage() {
   const handleRegenerate = () => {
     setIsRegenerating(true);
     setTimeout(() => {
+      pendo.track("report_section_regenerated", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        has_new_insight: hasNewInsight,
+      });
       setIsRegenerating(false);
       setHasNewInsight(false);
     }, 2000);

@@ -45,6 +45,13 @@ export default function RoastPage() {
   const [fullLoading, setFullLoading] = useState(false);
 
   const handleBookVC = () => {
+    pendo.track("vc_consultation_booked", {
+      startup_id: activeStartup?.id,
+      startup_name: activeStartup?.name,
+      roast_intensity_level: roastLevels[intensity]?.label,
+      overall_score: activeStartup?.overallScore,
+      risk_level: activeStartup?.riskLevel,
+    });
     window.location.href = "mailto:partners@launchlens.ai?subject=VC%20Consultation%20Booking";
   };
 
@@ -52,6 +59,12 @@ export default function RoastPage() {
     setFullLoading(true);
     setTimeout(() => {
       setFullLoading(false);
+      pendo.track("full_roast_report_generated", {
+        startup_id: activeStartup?.id,
+        startup_name: activeStartup?.name,
+        roast_intensity_level: roastLevels[intensity]?.label,
+        has_roast_data: !!roastData,
+      });
       alert("Full roast report generated and sent to your email!");
     }, 2000);
   };
