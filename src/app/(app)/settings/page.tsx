@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Search, Bell, Camera, Brain, Sparkles, Zap, Rocket, Coins, Moon, Sun, Monitor, Check, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 export default function SettingsPage() {
   const [activeModel, setActiveModel] = useState('gpt-4o');
@@ -19,7 +19,7 @@ export default function SettingsPage() {
     setTimeout(() => setIsSaving(false), 1500);
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -27,7 +27,7 @@ export default function SettingsPage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
