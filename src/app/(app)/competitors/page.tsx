@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function CompetitorsPage() {
   const activeStartup = useAppStore(state => state.startups.find(s => s.id === state.selectedStartupId));
@@ -313,9 +314,9 @@ export default function CompetitorsPage() {
                 <li className="text-muted-foreground text-sm">No vulnerability data available.</li>
               )}
             </ul>
-            <button className="mt-8 w-full py-4 border border-white/10 rounded-2xl font-bold text-sm text-foreground hover:bg-white/5 transition-all">
+            <Link href="/roast" className="mt-8 w-full block text-center py-4 border border-white/10 rounded-2xl font-bold text-sm text-foreground hover:bg-white/5 transition-all">
               View Full Risk Report
-            </button>
+            </Link>
           </GlassCard>
 
           {/* Visual Asset Placeholder */}
